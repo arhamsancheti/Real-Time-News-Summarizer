@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsAI - Real-Time Smart Summarizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin { animation: spin 1s linear infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">NewsAI</h1>
+                        <p class="text-sm text-gray-600">Real-Time Smart Summarizer</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="refreshBtn" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span class="hidden sm:inline">Refresh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Stats Dashboard -->
+        <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-xs md:text-sm">Total</p>
+                        <p id="totalCount" class="text-2xl md:text-3xl font-bold text-gray-900">0</p>
+                    </div>
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-xs md:text-sm">Positive</p>
+                        <p id="positiveCount" class="text-2xl md:text-3xl font-bold text-green-600">0</p>
+                    </div>
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-xs md:text-sm">Neutral</p>
+                        <p id="neutralCount" class="text-2xl md:text-3xl font-bold text-gray-600">0</p>
+                    </div>
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-xs md:text-sm">Negative</p>
+                        <p id="negativeCount" class="text-2xl md:text-3xl font-bold text-red-600">0</p>
+                    </div>
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Search
+                    </label>
+                    <input type="text" id="searchInput" placeholder="Search articles..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        Category
+                    </label>
+                    <select id="categoryFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sentiment</label>
+                    <select id="sentimentFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="all">All</option>
+                        <option value="positive">Positive</option>
+                        <option value="neutral">Neutral</option>
+                        <option value="negative">Negative</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden flex flex-col items-center justify-center py-20">
+            <svg class="w-12 h-12 animate-spin text-blue-600 mb-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-gray-600 animate-pulse">Analyzing news with AI...</p>
+        </div>
+
+        <!-- Articles Container -->
+        <div id="articlesContainer" class="grid grid-cols-1 gap-6">
+            <!-- Articles will be dynamically inserted -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No articles found</h3>
+            <p class="text-gray-500">Try adjusting your filters or search terms</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-gray-600 text-sm">
+            <p>NewsAI - Powered by AI • Made with ❤️</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mock AI-enhanced news data
+        let allArticles = [];
+        let isLoading = false;
+
+        // Sentiment analysis simulation
+        function analyzeSentiment(text) {
+            const positive = ['breakthrough', 'success', 'win', 'positive', 'growth', 'improve', 'gain', 'rise', 'achievement', 'victory'];
+            const negative = ['crisis', 'fail', 'loss', 'decline', 'concern', 'threat', 'risk', 'danger', 'problem', 'issue'];
+            
+            const lowerText = text.toLowerCase();
+            let positiveScore = 0;
+            let negativeScore = 0;
+            
+            positive.forEach(word => {
+                if (lowerText.includes(word)) positiveScore++;
+            });
+            
+            negative.forEach(word => {
+                if (lowerText.includes(word)) negativeScore++;
+            });
+            
+            if (positiveScore > negativeScore) {
+                return { sentiment: 'positive', score: 0.75 + Math.random() * 0.2 };
+            } else if (negativeScore > positiveScore) {
+                return { sentiment: 'negative', score: 0.7 + Math.random() * 0.25 };
+            } else {
+                return { sentiment: 'neutral', score: 0.5 + Math.random() * 0.2 };
+            }
+        }
+
+        // Categorize article
+        function categorizeArticle(text) {
+            const categories = {
+                'Technology': ['ai', 'tech', 'software', 'computer', 'digital', 'app', 'data', 'cyber'],
+                'Business': ['market', 'stock', 'economy', 'business', 'finance', 'company', 'trade'],
+                'Health': ['health', 'medical', 'disease', 'hospital', 'vaccine', 'doctor', 'patient'],
+                'Sports': ['sport', 'game', 'team', 'player', 'match', 'win', 'score', 'league'],
+                'Entertainment': ['movie', 'music', 'celebrity', 'film', 'actor', 'show', 'star'],
+                'Science': ['science', 'research', 'study', 'discovery', 'experiment', 'scientist'],
+                'Environment': ['climate', 'environment', 'energy', 'pollution', 'weather', 'green'],
+                'Politics': ['government', 'president', 'election', 'policy', 'minister', 'vote']
+            };
+            
+            const lowerText = text.toLowerCase();
+            let maxScore = 0;
+            let category = 'General';
+            
+            for (const [cat, keywords] of Object.entries(categories)) {
+                let score = keywords.filter(keyword => lowerText.includes(keyword)).length;
+                if (score > maxScore) {
+                    maxScore = score;
+                    category = cat;
+                }
+            }
+            
+            return category;
+        }
+
+        // Generate mock news data
+        function generateMockNews() {
+            const headlines = [
+                { title: "AI Breakthrough: New Model Achieves Human-Level Reasoning in Complex Tasks", summary: "Researchers have developed an advanced AI system that demonstrates unprecedented reasoning capabilities across multiple domains, potentially revolutionizing problem-solving in healthcare, education, and scientific research." },
+                { title: "Global Markets Show Mixed Results Amid Economic Uncertainty and Trade Tensions", summary: "Stock markets worldwide experienced significant volatility today as investors react to mixed economic indicators, ongoing geopolitical tensions, and central bank policy decisions." },
+                { title: "Climate Summit Ends Without Major Agreement on Emission Reduction Targets", summary: "International leaders concluded their climate conference with limited progress, raising concerns about meeting critical emission reduction goals needed to limit global warming to 1.5 degrees Celsius." },
+                { title: "New Medical Treatment Shows Remarkable Promise in Phase 3 Clinical Trials", summary: "A groundbreaking therapy for chronic autoimmune conditions has demonstrated significant positive results in large-scale clinical trials, offering hope to millions of patients worldwide who suffer from these debilitating diseases." },
+                { title: "Championship Game Ends in Dramatic Last-Second Victory for Underdogs", summary: "The finals concluded with an unforgettable last-second play that secured victory for the underdog team, marking one of the greatest comeback stories in sports history and delighting fans worldwide." },
+                { title: "Government Announces Comprehensive Infrastructure Development Initiative", summary: "Officials unveiled an ambitious infrastructure plan aimed at modernizing transportation networks, upgrading communication systems, and creating thousands of jobs over the next decade." },
+                { title: "Tech Giant Launches Revolutionary Quantum Computing Platform for Developers", summary: "Major technology company has released a new quantum computing service that makes this cutting-edge technology accessible to developers and researchers, potentially accelerating breakthroughs in drug discovery and materials science." },
+                { title: "Study Reveals Alarming Rate of Ocean Plastic Pollution Increase", summary: "New research indicates that plastic pollution in oceans has reached critical levels, with microplastics now detected in marine life across all major ocean ecosystems, posing serious threats to biodiversity." },
+                { title: "Space Agency Successfully Launches Mission to Study Distant Exoplanets", summary: "A new space telescope has been launched to investigate potentially habitable exoplanets, equipped with advanced instruments capable of analyzing atmospheric compositions and detecting signs of life." },
+                { title: "Major Cybersecurity Breach Affects Millions of Users Worldwide", summary: "A sophisticated cyberattack has compromised sensitive data from a popular online platform, prompting urgent security updates and raising questions about digital privacy protections in the modern age." },
+                { title: "Renewable Energy Investment Reaches Record High in Global Markets", summary: "Investment in renewable energy technologies has surged to unprecedented levels, with solar and wind projects attracting significant capital from both public and private sectors seeking sustainable solutions." },
+                { title: "Scientists Discover Potential Game-Changing Treatment for Alzheimer's Disease", summary: "Researchers have identified a novel therapeutic approach that shows promise in slowing cognitive decline in Alzheimer's patients, marking a potential breakthrough in neurodegenerative disease treatment." }
+            ];
+            
+            const sources = ['Tech Daily', 'Financial Times', 'World News', 'Medical Journal', 'Sports Network', 'National Press', 'Science Today', 'Global Herald'];
+            
+            return headlines.map((article, index) => {
+                const fullText = article.title + ' ' + article.summary;
+                const sentimentResult = analyzeSentiment(fullText);
+                const category = categorizeArticle(fullText);
+                
+                return {
+                    id: index + 1,
+                    title: article.title,
+                    summary: article.summary,
+                    category: category,
+                    sentiment: sentimentResult.sentiment,
+                    sentimentScore: sentimentResult.score,
+                    source: sources[Math.floor(Math.random() * sources.length)],
+                    url: '#',
+                    publishedAt: `${Math.floor(Math.random() * 12) + 1} hours ago`
+                };
+            });
+        }
+
+        // Fetch news
+        async function fetchNews() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const articlesContainer = document.getElementById('articlesContainer');
+            const refreshIcon = document.getElementById('refreshIcon');
+            
+            loadingIndicator.classList.remove('hidden');
+            articlesContainer.innerHTML = '';
+            refreshIcon.classList.add('animate-spin');
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            allArticles = generateMockNews();
+            
+            loadingIndicator.classList.add('hidden');
+            refreshIcon.classList.remove('animate-spin');
+            isLoading = false;
+            
+            updateStats();
+            updateCategoryFilter();
+            displayArticles();
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalCount').textContent = allArticles.length;
+            document.getElementById('positiveCount').textContent = allArticles.filter(a => a.sentiment === 'positive').length;
+            document.getElementById('neutralCount').textContent = allArticles.filter(a => a.sentiment === 'neutral').length;
+            document.getElementById('negativeCount').textContent = allArticles.filter(a => a.sentiment === 'negative').length;
+        }
+
+        // Update category filter
+        function updateCategoryFilter() {
+            const categories = [...new Set(allArticles.map(a => a.category))].sort();
+            const categoryFilter = document.getElementById('categoryFilter');
+            const currentValue = categoryFilter.value;
+            
+            categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+            categories.forEach(cat => {
+                categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            
+            categoryFilter.value = currentValue;
+        }
+
+        // Display articles
+        function displayArticles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const sentimentFilter = document.getElementById('sentimentFilter').value;
+            
+            const filtered = allArticles.filter(article => {
+                const matchesSearch = article.title.toLowerCase().includes(searchTerm) || 
+                                    article.summary.toLowerCase().includes(searchTerm);
+                const matchesCategory = categoryFilter === 'all' || article.category === categoryFilter;
+                const matchesSentiment = sentimentFilter === 'all' || article.sentiment === sentimentFilter;
+                return matchesSearch && matchesCategory && matchesSentiment;
+            });
+            
+            const container = document.getElementById('articlesContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            container.innerHTML = filtered.map(article => createArticleCard(article)).join('');
+        }
+
+        // Create article card
+        function createArticleCard(article) {
+            const categoryColors = {
+                'Technology': 'bg-blue-100 text-blue-800',
+                'Business': 'bg-purple-100 text-purple-800',
+                'Environment': 'bg-green-100 text-green-800',
+                'Health': 'bg-pink-100 text-pink-800',
+                'Sports': 'bg-orange-100 text-orange-800',
+                'Politics': 'bg-indigo-100 text-indigo-800',
+                'Science': 'bg-teal-100 text-teal-800',
+                'Entertainment': 'bg-rose-100 text-rose-800',
+                'General': 'bg-gray-100 text-gray-800'
+            };
+            
+            const sentimentColors = {
+                'positive': 'bg-green-100 text-green-800 border-green-300',
+                'negative': 'bg-red-100 text-red-800 border-red-300',
+                'neutral': 'bg-gray-100 text-gray-800 border-gray-300'
+            };
+            
+            const sentimentIcons = {
+                'positive': '😊',
+                'negative': '😟',
+                'neutral': '😐'
+            };
+            
+            return `
+                <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${categoryColors[article.category] || categoryColors['General']}">
+                                ${article.category}
+                            </span>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium border ${sentimentColors[article.sentiment]}">
+                                ${sentimentIcons[article.sentiment]} ${article.sentiment.charAt(0).toUpperCase() + article.sentiment.slice(1)} 
+                                (${(article.sentimentScore * 100).toFixed(0)}%)
+                            </span>
+                        </div>
+                        <button onclick="speakArticle(${article.id})" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Listen to summary">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-3">${article.title}</h2>
+                    <p class="text-gray-700 mb-4 leading-relaxed text-sm md:text-base">${article.summary}</p>
+                    <div class="flex items-center justify-between text-xs md:text-sm text-gray-500">
+                        <span class="font-medium">${article.source}</span>
+                        <span>${article.publishedAt}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Text to speech
+        function speakArticle(articleId) {
+            const article = allArticles.find(a => a.id === articleId);
+            if (!article) return;
+            
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const text = `${article.title}. ${article.summary}`;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Text-to-speech is not supported in your browser.');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('refreshBtn').addEventListener('click', fetchNews);
+        document.getElementById('searchInput').addEventListener('input', displayArticles);
+        document.getElementById('categoryFilter').addEventListener('change', displayArticles);
+        document.getElementById('sentimentFilter').addEventListener('change', displayArticles);
+
+        // Initial load
+        fetchNews();
+    </script>
+</body>
+</html>
