@@ -1,6 +1,6 @@
 # 📰 NewsAI - Real-Time Smart News Summarizer
 
-![NewsAI Banner](https://img.shields.io/badge/AI-Powered-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Version](https://img.shields.io/badge/version-1.0.0-orange)
+![NewsAI Banner](https://img.shields.io/badge/AI-Powered-blue) ![Version](https://img.shields.io/badge/version-1.0.0-orange)
 
 An intelligent news aggregator and analyzer that uses AI to fetch, categorize, summarize, and analyze sentiment of news articles in real-time. Built with modern NLP models and a beautiful, responsive interface.
 
@@ -449,8 +449,6 @@ SOFTWARE.
 
 <div align="center">
 
-**Made with ❤️ and AI**
 
-[⭐ Star this repo](https://github.com/yourusername/newsai) • [🐛 Report Bug](https://github.com/yourusername/newsai/issues) • [✨ Request Feature](https://github.com/yourusername/newsai/issues)
 
 </div>
